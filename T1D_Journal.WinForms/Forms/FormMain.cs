@@ -49,6 +49,19 @@ namespace T1D_Journal.WinForms.Forms
 		// ================================================================
 		private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
 		{
+			// Вкладка "Главная" (индекс 0)
+			if (tabControl.SelectedIndex == 0)
+			{
+				foreach (Control ctrl in tabPageDashboard.Controls)
+				{
+					if (ctrl is DashboardControl dashboard)
+					{
+						dashboard.RefreshData();
+						break;
+					}
+				}
+			}
+
 			// Вкладка "Ввод данных" (индекс 1)
 			if (tabControl.SelectedIndex == 1)
 			{

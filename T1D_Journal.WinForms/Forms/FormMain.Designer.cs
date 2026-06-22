@@ -29,14 +29,16 @@
 		private void InitializeComponent()
 		{
 			tabControl = new TabControl();
-			tabPageMain = new TabPage();
+			tabPageDashboard = new TabPage();
 			tabPageDataEntry = new TabPage();
 			dataEntryControl1 = new T1D_Journal.WinForms.UserControls.DataEntryControl();
 			tabPageJournal = new TabPage();
 			journalControl1 = new T1D_Journal.WinForms.UserControls.JournalControl();
 			tabPageReports = new TabPage();
 			reportsControl1 = new T1D_Journal.WinForms.UserControls.ReportsControl();
+			dashboardControl1 = new T1D_Journal.WinForms.UserControls.DashboardControl();
 			tabControl.SuspendLayout();
+			tabPageDashboard.SuspendLayout();
 			tabPageDataEntry.SuspendLayout();
 			tabPageJournal.SuspendLayout();
 			tabPageReports.SuspendLayout();
@@ -44,7 +46,7 @@
 			// 
 			// tabControl
 			// 
-			tabControl.Controls.Add(tabPageMain);
+			tabControl.Controls.Add(tabPageDashboard);
 			tabControl.Controls.Add(tabPageDataEntry);
 			tabControl.Controls.Add(tabPageJournal);
 			tabControl.Controls.Add(tabPageReports);
@@ -56,15 +58,16 @@
 			tabControl.TabIndex = 0;
 			tabControl.SelectedIndexChanged += tabControl_SelectedIndexChanged;
 			// 
-			// tabPageMain
+			// tabPageDashboard
 			// 
-			tabPageMain.Location = new Point(4, 24);
-			tabPageMain.Name = "tabPageMain";
-			tabPageMain.Padding = new Padding(3);
-			tabPageMain.Size = new Size(792, 422);
-			tabPageMain.TabIndex = 0;
-			tabPageMain.Text = "Главная";
-			tabPageMain.UseVisualStyleBackColor = true;
+			tabPageDashboard.Controls.Add(dashboardControl1);
+			tabPageDashboard.Location = new Point(4, 24);
+			tabPageDashboard.Name = "tabPageDashboard";
+			tabPageDashboard.Padding = new Padding(3);
+			tabPageDashboard.Size = new Size(792, 422);
+			tabPageDashboard.TabIndex = 0;
+			tabPageDashboard.Text = "Главная";
+			tabPageDashboard.UseVisualStyleBackColor = true;
 			// 
 			// tabPageDataEntry
 			// 
@@ -123,6 +126,13 @@
 			reportsControl1.Size = new Size(786, 416);
 			reportsControl1.TabIndex = 0;
 			// 
+			// dashboardControl1
+			// 
+			dashboardControl1.Location = new Point(0, 38);
+			dashboardControl1.Name = "dashboardControl1";
+			dashboardControl1.Size = new Size(1499, 691);
+			dashboardControl1.TabIndex = 0;
+			// 
 			// FormMain
 			// 
 			AutoScaleDimensions = new SizeF(7F, 15F);
@@ -134,6 +144,7 @@
 			FormClosed += FormMain_FormClosed;
 			Load += FormMain_Load;
 			tabControl.ResumeLayout(false);
+			tabPageDashboard.ResumeLayout(false);
 			tabPageDataEntry.ResumeLayout(false);
 			tabPageJournal.ResumeLayout(false);
 			tabPageReports.ResumeLayout(false);
@@ -143,12 +154,13 @@
 		#endregion
 
 		private TabControl tabControl;
-		private TabPage tabPageMain;
+		private TabPage tabPageDashboard;
 		private TabPage tabPageJournal;
 		private TabPage tabPageReports;
 		private TabPage tabPageDataEntry;
 		private UserControls.DataEntryControl dataEntryControl1;
 		private UserControls.JournalControl journalControl1;
 		private UserControls.ReportsControl reportsControl1;
+		private UserControls.DashboardControl dashboardControl1;
 	}
 }
