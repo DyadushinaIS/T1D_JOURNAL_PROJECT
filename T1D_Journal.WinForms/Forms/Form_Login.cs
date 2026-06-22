@@ -1,114 +1,168 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using T1D_Journal.DAL.Helpers;
+using T1D_Journal.DAL.Repositories;
+using T1D_Journal.Models.DTO;
+using T1D_Journal.Models;
+using T1D_Journal.Helpers;
 
 namespace T1D_Journal.WinForms.Forms
 {
-	public partial class Form_Login : Form
-	{
-		public Form_Login()
-		{
-			InitializeComponent();
-		}
+    public partial class Form_Login : Form
+    {
+        public Form_Login()
+        {
+            InitializeComponent();
 
-		// ОБРАБОТЧИК КНОПКИ "ВОЙТИ" - вызывается при клике на кнопку
-		private void buttonLogin_Click(object sender, EventArgs e)
-		{
-			// Получаем введённые данные из текстовых полей
-			string login = textBoxLogin.Text.Trim();      // Trim() убирает пробелы в начале и конце
-			string password = textBoxPassword.Text;       // Пароль без Trim(), т.к. пробелы могут быть частью пароля
+            // ================================================================
+            // ПОДПИСКА НА СОБЫТИЯ КЛАВИШ Enter
+            // ================================================================
 
-			// ПРОВЕРКА: заполнены ли поля
-			if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
-			{
-				// Если логин или пароль пустые - показываем предупреждение
-				MessageBox.Show("Введите логин и пароль!", "Ошибка",
-								MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return; // Выходим из метода, дальше не идём
-			}
+            // Когда пользователь нажимает Enter в поле логина
+            this.textBoxLogin.KeyDown += TextBoxLogin_KeyDown;
 
-			// ============================================================
-			// ТЕСТОВЫЙ РЕЖИМ (без БД) - ДЛЯ РАЗРАБОТКИ ИНТЕРФЕЙСА
-			// ============================================================
-			// Пока БД нет, используем тестовую пару логин/пароль
-			// Потом этот блок нужно будет УДАЛИТЬ (не закомментировать, а удалить)
+            // Когда пользователь нажимает Enter в поле пароля
+            this.textBoxPassword.KeyDown += TextBoxPassword_KeyDown;
 
-			if (login == "test" && password == "123")
-			{
-				// Тестовый вход успешен
-				MessageBox.Show("Тестовый вход выполнен!", "Успех",
-								MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // Когда пользователь нажимает Enter на самой форме (глобально)
+            this.KeyDown += Form_Login_KeyDown;
+        }
 
-				// СОЗДАЁМ ГЛАВНУЮ ФОРМУ
-				// FormMain - это основное окно программы (пока пустое, заполним позже)
-				FormMain mainForm = new FormMain();
+        // ================================================================
+        // ОБРАБОТЧИК НАЖАТИЯ КЛАВИШ В ПОЛЕ ЛОГИНА
+        // Если нажат Enter → переходим на поле пароля
+        // ================================================================
+        private void TextBoxLogin_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // Переключаем фокус на поле пароля
+                textBoxPassword.Focus();
 
-				// ПОКАЗЫВАЕМ ГЛАВНУЮ ФОРМУ
-				mainForm.Show();
+                // Говорим системе, что мы обработали нажатие
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
 
-				// СКРЫВАЕМ ФОРМУ ЛОГИНА (не закрываем, а прячем)
-				// Если закрыть - приложение завершится
-				this.Hide();
+        // ================================================================
+        // ОБРАБОТЧИК НАЖАТИЯ КЛАВИШ В ПОЛЕ ПАРОЛЯ
+        // Если нажат Enter → вызываем вход
+        // ================================================================
+        private void TextBoxPassword_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // Вызываем метод входа
+                buttonLogin_Click(sender, e);
 
-				return; // Выходим, код ниже не выполняется
-			}
+                // Говорим системе, что мы обработали нажатие
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
 
-			// ============================================================
-			// КОД С БД - РАБОТАЕТ, КОГДА ПОЯВИТСЯ БАЗА ДАННЫХ
-			// СЕЙЧАС ЗАКОММЕНТИРОВАН, ПОТОМ РАСКОММЕНТИРОВАТЬ
-			// И УДАЛИТЬ ТЕСТОВЫЙ БЛОК ВЫШЕ
-			// ============================================================
-			/*
+        // ================================================================
+        // ОБРАБОТЧИК НАЖАТИЯ КЛАВИШ НА ВСЕЙ ФОРМЕ (запасной вариант)
+        // Если Enter нажат где-то на форме — вызываем вход
+        // ================================================================
+        private void Form_Login_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Если нажат Enter и активное поле — не поле ввода (чтобы не было двойного срабатывания)
+            if (e.KeyCode == Keys.Enter &&
+                !(this.ActiveControl is TextBox))
+            {
+                buttonLogin_Click(sender, e);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        // ================================================================
+        // ОБРАБОТЧИК КНОПКИ "ВОЙТИ"
+        // ================================================================
+        private void buttonLogin_Click(object sender, EventArgs e)
+        {
+            // Получаем введённые данные
+            string login = textBoxLogin.Text.Trim();
+            string password = textBoxPassword.Text;
+
+            // Проверка: заполнены ли поля
+            if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Введите логин и пароль!", "Ошибка",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // ============================================================
+            // ТЕСТОВЫЙ РЕЖИМ (для разработки)
+            // ============================================================
+            if (login == "test" && password == "123")
+            {
+                bool connected = DbHelper.TestConnection();
+
+                if (connected)
+                {
+                    MessageBox.Show("✅ Подключение к БД успешно!",
+                                    "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("❌ Не удалось подключиться к БД.\nПроверьте строку подключения в App.config.",
+                                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                FormMain mainForm = new FormMain();
+                mainForm.Show();
+                this.Hide();
+                return;
+            }
+
+            // ============================================================
+            // РЕАЛЬНАЯ АВТОРИЗАЦИЯ ЧЕРЕЗ БАЗУ ДАННЫХ
+            // ============================================================
             try
             {
-                // 1. СОЗДАЁМ РЕПОЗИТОРИЙ - объект, который работает с БД
+                // Хешируем введённый пароль
+                string hashedPassword = HashHelper.GetMD5Hash(password);
+
                 var userRepo = new UserRepository();
-                
-                // 2. ПЫТАЕМСЯ НАЙТИ ПОЛЬЗОВАТЕЛЯ В БД
-                // Метод Authenticate проверяет логин и пароль в таблице Users
-                var user = userRepo.Authenticate(login, password);
-                
-                // 3. ПРОВЕРЯЕМ, НАЙДЕН ЛИ ПОЛЬЗОВАТЕЛЬ
-                if (user != null) // если не null - пользователь существует
+                var user = userRepo.Authenticate(login, hashedPassword);
+
+                if (user != null)
                 {
-                    // Успешный вход - приветствуем пользователя
+                    // Сохраняем данные вошедшего пользователя
+                    CurrentUser.ID = user.UserID;
+                    CurrentUser.FullName = user.FullName;
+                    CurrentUser.Login = user.Login;
+
                     MessageBox.Show($"Добро пожаловать, {user.FullName}!", "Успех",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    
-                    // Открываем главную форму
+
                     FormMain mainForm = new FormMain();
                     mainForm.Show();
                     this.Hide();
                 }
                 else
                 {
-                    // Пользователь не найден - ошибка авторизации
                     MessageBox.Show("Неверный логин или пароль!", "Ошибка",
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                // Если что-то пошло не так (нет БД, ошибка подключения и т.д.)
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            */
-		}
+        }
 
-		// ОБРАБОТЧИК КНОПКИ "ВЫХОД" - закрывает приложение
-		private void buttonExit_Click(object sender, EventArgs e)
-		{
-			// Application.Exit() - корректно завершает всё приложение
-			// В отличие от this.Close(), который закроет только форму логина,
-			// но приложение продолжит работать в фоне
-			Application.Exit();
-		}
-	}
+        // ================================================================
+        // ОБРАБОТЧИК КНОПКИ "ВЫХОД"
+        // ================================================================
+        private void buttonExit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+    }
 }

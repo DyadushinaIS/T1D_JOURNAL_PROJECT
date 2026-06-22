@@ -1,76 +1,64 @@
 ﻿using System;
 using System.Windows.Forms;
+using T1D_Journal.DAL.Repositories;
+using T1D_Journal.Models.DTO;
+using T1D_Journal.Models;
 
 namespace T1D_Journal.WinForms.UserControls
 {
-	public partial class DataEntryControl : UserControl
-	{
-		// ============================================================
-		// КОНСТРУКТОР
-		// ============================================================
-		public DataEntryControl()
-		{
-			InitializeComponent();
+    public partial class DataEntryControl : UserControl
+    {
+        public DataEntryControl()
+        {
+            InitializeComponent();
 
-			// Подписываемся на события кнопок
-			this.buttonSaveReading.Click += ButtonSaveReading_Click;
-			this.buttonClear.Click += ButtonClear_Click;
-		}
+            this.buttonSaveReading.Click += ButtonSaveReading_Click;
+            this.buttonClear.Click += ButtonClear_Click;
 
-		// ============================================================
-		// МЕТОД ЗАГРУЗКИ ДАННЫХ (вызывается при открытии вкладки)
-		// ============================================================
-		public void LoadData()
-		{
-			dateTimePickerReading.Value = DateTime.Now;
-			numericUpDownGlucose.Value = 5.5m;
-			comboBoxMealTag.SelectedIndex = 0;
-			textBoxNote.Clear();
-		}
+            LoadData();
+        }
 
-		// ============================================================
-		// ОБРАБОТЧИК КНОПКИ "СОХРАНИТЬ ЗАМЕР"
-		// ============================================================
-		private void ButtonSaveReading_Click(object sender, EventArgs e)
-		{
-			// Собираем данные с формы
-			DateTime readingDateTime = dateTimePickerReading.Value;
-			decimal glucoseValue = numericUpDownGlucose.Value;
-			string mealTag = comboBoxMealTag.SelectedItem?.ToString() ?? "BeforeMeal";
-			string note = textBoxNote.Text.Trim();
+        public void LoadData()
+        {
+            dateTimePickerReading.Value = DateTime.Now;
+            numericUpDownGlucose.Value = 5.0m;
+            if (comboBoxMealTag.Items.Count > 0)
+                comboBoxMealTag.SelectedIndex = 0;
+            textBoxNote.Clear();
+        }
 
-			// ВАЛИДАЦИЯ (проверка данных)
-			if (glucoseValue <= 0)
-			{
-				MessageBox.Show("Глюкоза должна быть больше 0!", "Ошибка",
-								MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return;
-			}
+        private void ButtonSaveReading_Click(object sender, EventArgs e)
+        {
+            DateTime readingDateTime = dateTimePickerReading.Value;
+            decimal glucoseValue = numericUpDownGlucose.Value;
+            string mealTag = comboBoxMealTag.SelectedItem?.ToString() ?? "BeforeMeal";
+            string note = textBoxNote.Text.Trim();
 
-			// ============================================================
-			// ТЕСТОВЫЙ РЕЖИМ (без БД)
-			// ============================================================
-			MessageBox.Show($"Замер сохранён (тестовый режим)!\n\n" +
-							$"Дата: {readingDateTime:dd.MM.yyyy HH:mm}\n" +
-							$"Глюкоза: {glucoseValue} ммоль/л\n" +
-							$"Когда: {mealTag}\n" +
-							$"Примечание: {note}",
-							"Успешно",
-							MessageBoxButtons.OK,
-							MessageBoxIcon.Information);
+            if (glucoseValue <= 0)
+            {
+                MessageBox.Show("Глюкоза должна быть больше 0!", "Ошибка",
+                                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-			// Очищаем поля для следующего ввода
-			LoadData();
+            if (glucoseValue < 2.0m || glucoseValue > 15.0m)
+            {
+                DialogResult result = MessageBox.Show(
+                    $"Значение глюкозы {glucoseValue} ммоль/л выходит за пределы нормы.\n" +
+                    "Вы уверены, что хотите сохранить этот замер?",
+                    "Подтверждение",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
 
-			/*
-            // ============================================================
-            // КОД С БД - РАСКОММЕНТИРОВАТЬ КОГДА ПОЯВИТСЯ БД
-            // ============================================================
+                if (result == DialogResult.No)
+                    return;
+            }
+
             try
             {
                 var reading = new GlucoseReadingDto
                 {
-                    UserID = 1, // TODO: брать ID текущего пользователя
+                    UserID = CurrentUser.ID,
                     ReadingDateTime = readingDateTime,
                     GlucoseValue = glucoseValue,
                     MealTag = mealTag,
@@ -80,25 +68,32 @@ namespace T1D_Journal.WinForms.UserControls
                 var repo = new GlucoseRepository();
                 int newId = repo.Create(reading);
 
-                MessageBox.Show($"Замер сохранён! ID: {newId}", "Успешно",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    $"✅ Замер успешно сохранён!\n\n" +
+                    $"ID записи: {newId}\n" +
+                    $"Дата: {readingDateTime:dd.MM.yyyy HH:mm}\n" +
+                    $"Глюкоза: {glucoseValue:F1} ммоль/л\n" +
+                    $"Когда: {mealTag}\n" +
+                    $"Заметка: {(string.IsNullOrEmpty(note) ? "(нет)" : note)}",
+                    "Успешно",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
 
                 LoadData();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    $"❌ Ошибка при сохранении замера:\n\n{ex.Message}",
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
-            */
-		}
+        }
 
-		// ============================================================
-		// ОБРАБОТЧИК КНОПКИ "ОЧИСТИТЬ"
-		// ============================================================
-		private void ButtonClear_Click(object sender, EventArgs e)
-		{
-			LoadData();
-		}
-	}
+        private void ButtonClear_Click(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+    }
 }

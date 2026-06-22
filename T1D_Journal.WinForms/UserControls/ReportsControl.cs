@@ -1,210 +1,268 @@
 ﻿using LiveCharts;
 using LiveCharts.Wpf;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq.Expressions;
+using System.Data;
+using System.Linq;
 using System.Windows.Forms;
+using T1D_Journal.DAL.Repositories;
+using T1D_Journal.Models;
 
 namespace T1D_Journal.WinForms.UserControls
 {
-	public partial class ReportsControl : UserControl
-	{
-		// ================================================================
-		// КОНСТРУКТОР
-		// ================================================================
-		public ReportsControl()
-		{
-			InitializeComponent();
+    public partial class ReportsControl : UserControl
+    {
+        // ================================================================
+        // КОНСТРУКТОР
+        // Вызывается при создании контрола (один раз)
+        // ================================================================
+        public ReportsControl()
+        {
+            InitializeComponent();
 
-			// Настройка панели статистики
-			panelStats.Dock = DockStyle.Top;
-			panelStats.Height = 100;
+            // --- Настройка внешнего вида ---
+            // Панель статистики приклеивается к верху
+            panelStats.Dock = DockStyle.Top;
+            panelStats.Height = 100;
 
-			// Настройка графика
-			cartesianChartGlucose.Dock = DockStyle.Fill;
+            // График занимает всё оставшееся место
+            cartesianChartGlucose.Dock = DockStyle.Fill;
 
-			// Подписка на события
-			buttonGenerate.Click += ButtonGenerate_Click;
+            // --- Добавляем пункты в выпадающий список (если их нет) ---
+            if (comboBoxPeriod.Items.Count == 0)
+            {
+                comboBoxPeriod.Items.Add("День");
+                comboBoxPeriod.Items.Add("Неделя");
+                comboBoxPeriod.Items.Add("Месяц");
+            }
+            // По умолчанию выбираем "Неделя" (индекс 1)
+            comboBoxPeriod.SelectedIndex = 1;
 
-			// Загрузка тестовых данных
-			LoadTestData();
-		}
+            // --- Подписываемся на событие кнопки ---
+            // Когда пользователь нажимает "Построить график" — вызывается метод ButtonGenerate_Click
+            buttonGenerate.Click += ButtonGenerate_Click;
 
-		// ================================================================
-		// ЗАГРУЗКА ТЕСТОВЫХ ДАННЫХ
-		// ================================================================
-		private void LoadTestData()
-		{
-			// Тестовые данные: дата и уровень глюкозы
-			var testData = new List<KeyValuePair<DateTime, double>>
-			{
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-6), 5.2),
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-5), 7.8),
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-4), 4.5),
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-3), 6.1),
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-2), 8.2),
-				new KeyValuePair<DateTime, double>(DateTime.Now.AddDays(-1), 5.0),
-				new KeyValuePair<DateTime, double>(DateTime.Now, 6.3)
-			};
+            // --- Загружаем реальные данные из БД при запуске ---
+            LoadChartData();
+        }
 
-			BuildChart(testData);
-			UpdateStatistics(testData);
-		}
+        // ================================================================
+        // ЗАГРУЗКА ДАННЫХ ДЛЯ ГРАФИКА ИЗ БАЗЫ ДАННЫХ
+        // Определяет период (день/неделя/месяц) и загружает данные
+        // ================================================================
+        private void LoadChartData()
+        {
+            try
+            {
+                // --- ШАГ 1: Определяем период ---
+                // Смотрим, что выбрано в выпадающем списке
+                string period = comboBoxPeriod.SelectedItem?.ToString() ?? "Неделя";
 
-		// ================================================================
-		// ПОСТРОЕНИЕ ГРАФИКА
-		// ================================================================
-		private void BuildChart(List<KeyValuePair<DateTime, double>> data)
-		{
-			// Очищаем старый график
-			cartesianChartGlucose.Series.Clear();
-			cartesianChartGlucose.AxisX.Clear();
-			cartesianChartGlucose.AxisY.Clear();
+                // Начальная дата зависит от выбранного периода
+                DateTime from;
+                DateTime to = DateTime.Now; // Конечная дата — сегодня
 
-			// Создаём серию данных для графика
-			var series = new LineSeries
-			{
-				Title = "Глюкоза (ммоль/л)",
-				Values = new ChartValues<double>(),
-				LineSmoothness = 0.5,  // Плавная линия
-				PointGeometrySize = 15 // Размер точек
-			};
+                switch (period)
+                {
+                    case "День":
+                        from = DateTime.Now.Date; // Начало сегодняшнего дня (00:00)
+                        break;
+                    case "Неделя":
+                        from = DateTime.Now.AddDays(-6).Date; // 6 дней назад (всего 7 дней)
+                        break;
+                    case "Месяц":
+                        from = DateTime.Now.AddDays(-29).Date; // 29 дней назад (всего 30 дней)
+                        break;
+                    default:
+                        from = DateTime.Now.AddDays(-6).Date;
+                        break;
+                }
 
-			// Добавляем значения
-			foreach (var point in data)
-			{
-				series.Values.Add(point.Value);
-			}
+                // --- ШАГ 2: Получаем данные из БД ---
+                // Создаём репозиторий для работы с замерами
+                var repo = new GlucoseRepository();
 
-			// Добавляем серию на график
-			cartesianChartGlucose.Series.Add(series);
+                // Вызываем метод, который возвращает DataTable с датами и значениями глюкозы
+                DataTable dt = repo.GetChartData(CurrentUser.ID, from, to);
 
-			// Настройка оси X (даты)
-			cartesianChartGlucose.AxisX.Add(new Axis
-			{
-				Title = "Дата",
-				Labels = data.ConvertAll(p => p.Key.ToString("dd.MM")),
-				Separator = new Separator { Step = 1 }
-			});
+                // --- ШАГ 3: Проверяем, есть ли данные ---
+                if (dt.Rows.Count == 0)
+                {
+                    // Если данных нет — показываем сообщение
+                    MessageBox.Show("Нет данных для построения графика за выбранный период.",
+                                    "Информация",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
 
-			// Настройка оси Y (глюкоза)
-			var yAxis = new Axis
-			{
-				Title = "Глюкоза (ммоль/л)",
-				MinValue = 0,
-				MaxValue = 15,
-				Separator = new Separator { Step = 1 }
-			};
+                    // Очищаем график, чтобы не показывать старые данные
+                    cartesianChartGlucose.Series.Clear();
+                    cartesianChartGlucose.AxisX.Clear();
+                    cartesianChartGlucose.AxisY.Clear();
 
-			// Целевая зона (4.0 - 7.0 ммоль/л)
-			yAxis.Sections.Add(new AxisSection
-			{
-				FromValue = 4.0,
-				ToValue = 7.0,
-				Fill = new System.Windows.Media.SolidColorBrush(
-					System.Windows.Media.Color.FromArgb(50, 0, 255, 0)),
-				Stroke = new System.Windows.Media.SolidColorBrush(
-					System.Windows.Media.Color.FromArgb(100, 0, 100, 0)),
-				StrokeThickness = 1
-			});
+                    // Очищаем статистику
+                    labelAvg.Text = "Средняя: --";
+                    labelMin.Text = "Мин: --";
+                    labelMax.Text = "Макс: --";
+                    labelTarget.Text = "В норме: --%";
+                    return;
+                }
 
-			cartesianChartGlucose.AxisY.Add(yAxis);
-		}
+                // --- ШАГ 4: Строим график по данным из БД ---
+                BuildChart(dt);
 
-		// ================================================================
-		// ОБНОВЛЕНИЕ СТАТИСТИКИ
-		// ================================================================
-		private void UpdateStatistics(List<KeyValuePair<DateTime, double>> data)
-		{
-			if (data.Count == 0)
-			{
-				labelAvg.Text = "Средняя: --";
-				labelMin.Text = "Мин: --";
-				labelMax.Text = "Макс: --";
-				labelTarget.Text = "В норме: --%";
-				return;
-			}
+                // --- ШАГ 5: Обновляем статистику ---
+                UpdateStatistics(dt);
+            }
+            catch (Exception ex)
+            {
+                // Если произошла ошибка (нет БД, ошибка SQL и т.д.)
+                MessageBox.Show($"❌ Ошибка загрузки данных для графика:\n\n{ex.Message}",
+                                "Ошибка",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+            }
+        }
 
-			// Извлекаем значения глюкозы
-			var values = data.ConvertAll(p => p.Value);
+        // ================================================================
+        // ПОСТРОЕНИЕ ГРАФИКА
+        // Принимает DataTable с данными из БД и отображает их на графике
+        // ================================================================
+        private void BuildChart(DataTable data)
+        {
+            // --- ШАГ 1: Очищаем старый график ---
+            cartesianChartGlucose.Series.Clear();
+            cartesianChartGlucose.AxisX.Clear();
+            cartesianChartGlucose.AxisY.Clear();
 
-			// Вычисляем статистику
-			double avg = values.Average();
-			double min = values.Min();
-			double max = values.Max();
-			int inTarget = values.Count(v => v >= 4.0 && v <= 7.0);
-			double percentInTarget = (double)inTarget / values.Count * 100;
+            // --- ШАГ 2: Извлекаем данные из DataTable ---
+            // Список дат (для оси X)
+            var dates = data.AsEnumerable()
+                            .Select(r => Convert.ToDateTime(r["ReadingDateTime"]))
+                            .ToList();
 
-			// Отображаем
-			labelAvg.Text = $"Средняя: {avg:F1} ммоль/л";
-			labelMin.Text = $"Мин: {min:F1} ммоль/л";
-			labelMax.Text = $"Макс: {max:F1} ммоль/л";
-			labelTarget.Text = $"В норме: {percentInTarget:F0}%";
-		}
+            // Список значений глюкозы (для оси Y)
+            var values = data.AsEnumerable()
+                             .Select(r => Convert.ToDouble(r["GlucoseValue"]))
+                             .ToList();
 
-		// ================================================================
-		// ОБРАБОТЧИК КНОПКИ "ПОСТРОИТЬ ГРАФИК"
-		// ================================================================
-		private void ButtonGenerate_Click(object sender, EventArgs e)
-		{
-			// Получаем выбранный период
-			string period = comboBoxPeriod.SelectedItem?.ToString() ?? "Неделя";
+            // --- ШАГ 3: Создаём серию данных для графика ---
+            // LineSeries — это линия на графике
+            var series = new LineSeries
+            {
+                Title = "Глюкоза (ммоль/л)",      // Название серии (отображается в легенде)
+                Values = new ChartValues<double>(), // Значения (будут добавлены ниже)
+                LineSmoothness = 0.5,              // Плавность линии (0 = ломаная, 1 = максимально плавная)
+                PointGeometrySize = 15             // Размер точек на графике
+            };
 
-			// В зависимости от периода генерируем разные данные
-			// Пока просто тестовые данные с разным количеством точек
+            // Добавляем значения глюкозы в серию
+            foreach (var v in values)
+            {
+                series.Values.Add(v);
+            }
 
-			var testData = new List<KeyValuePair<DateTime, double>>();
+            // Добавляем серию на график
+            cartesianChartGlucose.Series.Add(series);
 
-			switch (period)
-			{
-				case "День":
-					// Данные за день (каждый час)
-					for (int i = 0; i < 8; i++)
-					{
-						double value = 4.0 + new Random().NextDouble() * 5.0;
-						testData.Add(new KeyValuePair<DateTime, double>(
-							DateTime.Now.AddHours(-7 + i), value));
-					}
-					break;
+            // --- ШАГ 4: Настройка оси X (даты) ---
+            // Ось X будет показывать даты в формате "день.месяц"
+            cartesianChartGlucose.AxisX.Add(new Axis
+            {
+                Title = "Дата",
+                Labels = dates.Select(d => d.ToString("dd.MM")).ToList(),
+                Separator = new Separator { Step = 1 } // Шаг между делениями = 1 день
+            });
 
-				case "Неделя":
-					// Данные за неделю (каждый день)
-					for (int i = 0; i < 7; i++)
-					{
-						double value = 4.0 + new Random().NextDouble() * 5.0;
-						testData.Add(new KeyValuePair<DateTime, double>(
-							DateTime.Now.AddDays(-6 + i), value));
-					}
-					break;
+            // --- ШАГ 5: Настройка оси Y (глюкоза) и целевой зоны ---
+            // Создаём ось Y с диапазоном от 0 до 15 ммоль/л
+            var yAxis = new Axis
+            {
+                Title = "Глюкоза (ммоль/л)",
+                MinValue = 0,
+                MaxValue = 15,
+                Separator = new Separator { Step = 1 }
+            };
 
-				case "Месяц":
-					// Данные за месяц (каждые 2-3 дня)
-					for (int i = 0; i < 14; i++)
-					{
-						double value = 4.0 + new Random().NextDouble() * 5.0;
-						testData.Add(new KeyValuePair<DateTime, double>(
-							DateTime.Now.AddDays(-28 + i * 2), value));
-					}
-					break;
+            // --- ДОБАВЛЯЕМ ЦЕЛЕВУЮ ЗОНУ (4.0 - 7.0 ммоль/л) ---
+            // Это зелёная полоса на графике, показывающая целевой диапазон
+            yAxis.Sections.Add(new AxisSection
+            {
+                FromValue = 4.0,   // Нижняя граница нормы
+                ToValue = 7.0,     // Верхняя граница нормы
+                Fill = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(50, 0, 255, 0)), // Полупрозрачный зелёный
+                Stroke = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromArgb(100, 0, 100, 0)), // Тёмно-зелёная граница
+                StrokeThickness = 1
+            });
 
-				default:
-					LoadTestData();
-					return;
-			}
+            // Добавляем ось Y на график
+            cartesianChartGlucose.AxisY.Add(yAxis);
+        }
 
-			BuildChart(testData);
-			UpdateStatistics(testData);
-		}
+        // ================================================================
+        // ОБНОВЛЕНИЕ СТАТИСТИКИ
+        // Вычисляет и отображает: среднюю, минимум, максимум, процент в норме
+        // ================================================================
+        private void UpdateStatistics(DataTable data)
+        {
+            // --- ШАГ 1: Извлекаем все значения глюкозы из DataTable ---
+            var values = data.AsEnumerable()
+                             .Select(r => Convert.ToDouble(r["GlucoseValue"]))
+                             .ToList();
 
-		// ================================================================
-		// ОБНОВЛЕНИЕ ДАННЫХ (вызывается из FormMain)
-		// ================================================================
-		public void RefreshData()
-		{
-			// При переходе на вкладку показываем данные за неделю
-			comboBoxPeriod.SelectedIndex = 1; // "Неделя"
-			ButtonGenerate_Click(null, null);
-		}
-	}
+            // Если данных нет — показываем прочерки
+            if (values.Count == 0)
+            {
+                labelAvg.Text = "Средняя: --";
+                labelMin.Text = "Мин: --";
+                labelMax.Text = "Макс: --";
+                labelTarget.Text = "В норме: --%";
+                return;
+            }
+
+            // --- ШАГ 2: Вычисляем статистику ---
+            // Среднее арифметическое
+            double avg = values.Average();
+
+            // Минимальное значение
+            double min = values.Min();
+
+            // Максимальное значение
+            double max = values.Max();
+
+            // Количество значений в целевом диапазоне (4.0 - 7.0)
+            int inTarget = values.Count(v => v >= 4.0 && v <= 7.0);
+
+            // Процент значений в норме
+            double percentInTarget = (double)inTarget / values.Count * 100;
+
+            // --- ШАГ 3: Отображаем статистику на форме ---
+            labelAvg.Text = $"Средняя: {avg:F1} ммоль/л";
+            labelMin.Text = $"Мин: {min:F1} ммоль/л";
+            labelMax.Text = $"Макс: {max:F1} ммоль/л";
+            labelTarget.Text = $"В норме: {percentInTarget:F0}%";
+        }
+
+        // ================================================================
+        // ОБРАБОТЧИК КНОПКИ "ПОСТРОИТЬ ГРАФИК"
+        // Вызывается, когда пользователь нажимает кнопку
+        // ================================================================
+        private void ButtonGenerate_Click(object sender, EventArgs e)
+        {
+            // Просто перезагружаем данные за выбранный период
+            LoadChartData();
+        }
+
+        // ================================================================
+        // ОБНОВЛЕНИЕ ДАННЫХ (вызывается из FormMain при переключении вкладки)
+        // ================================================================
+        public void RefreshData()
+        {
+            // При переходе на вкладку показываем данные за неделю
+            comboBoxPeriod.SelectedIndex = 1; // "Неделя"
+
+            // Загружаем данные
+            LoadChartData();
+        }
+    }
 }
