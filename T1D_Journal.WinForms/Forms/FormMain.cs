@@ -1,133 +1,213 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
-// Подключаем пространство имен с UserControl-ами, чтобы использовать их в коде
+using T1D_Journal.Models;
 using T1D_Journal.WinForms.UserControls;
 
 namespace T1D_Journal.WinForms.Forms
 {
 	public partial class FormMain : Form
 	{
-		// ================================================================
-		// КОНСТРУКТОР - вызывается при создании главной формы
-		// ================================================================
 		public FormMain()
 		{
-			// Инициализация всех компонентов (кнопки, вкладки и т.д.)
-			// Этот метод автоматически генерируется в FormMain.Designer.cs
 			InitializeComponent();
+			this.Text = $"Дневник T1D - {CurrentUser.FullName}";
+			this.WindowState = FormWindowState.Maximized;
 
-			// Настройка внешнего вида формы
-			this.WindowState = FormWindowState.Maximized;  // Открывать на весь экран
-			this.Text = "Дневник самоконтроля T1D";        // Заголовок окна
+			// ================================================================
+			// КРАСИВАЯ ШАПКА
+			// ================================================================
+			Panel headerPanel = new Panel();
+			headerPanel.Dock = DockStyle.Top;
+			headerPanel.Height = 65;
+			headerPanel.BackColor = Color.White;  // Теперь белая
+			headerPanel.Padding = new Padding(20, 0, 20, 0);
+
+			// ---- Приветствие слева ----
+			Label welcomeLabel = new Label();
+			welcomeLabel.Text = $"Здравствуйте, {CurrentUser.FullName}!";
+			welcomeLabel.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+			welcomeLabel.ForeColor = Color.FromArgb(40, 40, 60);
+			welcomeLabel.AutoSize = true;
+			welcomeLabel.Location = new Point(15, 18);
+
+			// ---- Панель для кнопок справа ----
+			Panel buttonPanel = new Panel();
+			buttonPanel.Dock = DockStyle.Right;
+			buttonPanel.Width = 320;  // увеличили, чтобы кнопки влезли
+			buttonPanel.Height = 65;
+			buttonPanel.BackColor = Color.Transparent;
+			buttonPanel.Padding = new Padding(0, 12, 0, 0);
+
+			// ---- Кнопка "Сменить пользователя" ----
+			Button buttonSwitchUser = new Button();
+			buttonSwitchUser.Text = "🔑 Сменить пользователя";
+			buttonSwitchUser.Size = new Size(180, 36);
+			buttonSwitchUser.Location = new Point(0, 14);   // центровка
+			buttonSwitchUser.FlatStyle = FlatStyle.Flat;
+			buttonSwitchUser.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
+			buttonSwitchUser.BackColor = Color.FromArgb(240, 248, 255);
+			buttonSwitchUser.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+			buttonSwitchUser.ForeColor = Color.FromArgb(50, 50, 80);
+			buttonSwitchUser.Cursor = Cursors.Hand;
+			buttonSwitchUser.Click += ButtonSwitchUser_Click;
+
+			// ---- Кнопка "Выход" ----
+			Button buttonExit = new Button();
+			buttonExit.Text = "❌ Выход";
+			buttonExit.Size = new Size(110, 36);
+			buttonExit.Location = new Point(190, 14);   // центровка
+			buttonExit.FlatStyle = FlatStyle.Flat;
+			buttonExit.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
+			buttonExit.BackColor = Color.FromArgb(255, 240, 240);
+			buttonExit.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+			buttonExit.ForeColor = Color.FromArgb(120, 40, 40);
+			buttonExit.Cursor = Cursors.Hand;
+			buttonExit.Click += ButtonExit_Click;
+
+			buttonPanel.Controls.Add(buttonSwitchUser);
+			buttonPanel.Controls.Add(buttonExit);
+
+			headerPanel.Controls.Add(buttonPanel);
+			headerPanel.Controls.Add(welcomeLabel);
+
+			// ---- Тонкая линия-разделитель снизу ----
+			Label lineSeparator = new Label();
+			lineSeparator.Dock = DockStyle.Bottom;
+			lineSeparator.Height = 1;
+			lineSeparator.BackColor = Color.FromArgb(220, 220, 220);
+			headerPanel.Controls.Add(lineSeparator);
+
+			this.Controls.Add(headerPanel);
+			headerPanel.BringToFront();
+
+			// ================================================================
+			// ВКЛАДКА "ОТЧЁТЫ" — ВРЕМЕННО ОТКЛЮЧЕНА
+			// ================================================================
+			tabPageReports.Enabled = false;
 		}
 
-		// ================================================================
-		// ОБРАБОТЧИК СОБЫТИЯ ЗАГРУЗКИ ФОРМЫ
-		// Вызывается один раз, когда форма загружается и становится видимой
-		// ================================================================
 		private void FormMain_Load(object sender, EventArgs e)
 		{
-			// Загружаем начальные данные для вкладки "Ввод данных"
-			// Ищем на вкладке наш DataEntryControl и вызываем его метод LoadData()
-			foreach (Control ctrl in tabPageDataEntry.Controls)
+			LoadAllTabsData();
+		}
+
+		private void LoadAllTabsData()
+		{
+			bool isTestMode = (CurrentUser.Login == "test");
+
+			foreach (Control ctrl in tabPageDashboard.Controls)
 			{
-				// Проверяем, является ли контрол именно DataEntryControl
-				if (ctrl is DataEntryControl dataEntry)
+				if (ctrl is DashboardControl dashboard)
 				{
-					// Вызываем метод загрузки данных (устанавливает дату, очищает поля)
-					dataEntry.LoadData();
-					break; // Нашли - выходим из цикла
+					if (isTestMode)
+						dashboard.LoadTestData();
+					else
+						dashboard.RefreshData();
+					break;
 				}
 			}
 
-			// Можно также добавить приветствие пользователя или другую логику
+			foreach (Control ctrl in tabPageDataEntry.Controls)
+			{
+				if (ctrl is DataEntryControl dataEntry)
+				{
+					dataEntry.LoadData();
+					break;
+				}
+			}
+
+			foreach (Control ctrl in tabPageJournal.Controls)
+			{
+				if (ctrl is JournalControl journal)
+				{
+					if (isTestMode)
+						journal.LoadTestData();
+					else
+						journal.RefreshData();
+					break;
+				}
+			}
 		}
 
-		// ================================================================
-		// ОБРАБОТЧИК ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
-		// Вызывается каждый раз, когда пользователь кликает на другую вкладку
-		// ================================================================
 		private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			// Вкладка "Главная" (индекс 0)
+			bool isTestMode = (CurrentUser.Login == "test");
+
 			if (tabControl.SelectedIndex == 0)
 			{
 				foreach (Control ctrl in tabPageDashboard.Controls)
 				{
 					if (ctrl is DashboardControl dashboard)
 					{
-						dashboard.RefreshData();
+						if (isTestMode)
+							dashboard.LoadTestData();
+						else
+							dashboard.RefreshData();
 						break;
 					}
 				}
 			}
 
-			// Вкладка "Ввод данных" (индекс 1)
 			if (tabControl.SelectedIndex == 1)
 			{
-				// При переходе на вкладку "Ввод данных" обновляем данные
 				foreach (Control ctrl in tabPageDataEntry.Controls)
 				{
 					if (ctrl is DataEntryControl dataEntry)
 					{
-						// Очищаем поля для нового ввода
 						dataEntry.LoadData();
 						break;
 					}
 				}
 			}
-			// Вкладка "Журнал" (индекс 2)
+
 			if (tabControl.SelectedIndex == 2)
 			{
 				foreach (Control ctrl in tabPageJournal.Controls)
 				{
 					if (ctrl is JournalControl journal)
 					{
-						journal.RefreshData();
+						if (isTestMode)
+							journal.LoadTestData();
+						else
+							journal.RefreshData();
 						break;
 					}
 				}
 			}
-			// Вкладка "Отчеты" (индекс 3)
-			if (tabControl.SelectedIndex == 3)
-			{
-				foreach (Control ctrl in tabPageReports.Controls)
-				{
-					if (ctrl is ReportsControl reports)
-					{
-						reports.RefreshData();
-						break;
-					}
-				}
-			}
-
-			// ================================================================
-			// ДЛЯ БУДУЩИХ ВКЛАДОК (добавим позже)
-			// ================================================================
-			/*
-            if (tabControl.SelectedIndex == 0)
-            {
-                // Вкладка "Главная" - обновить дашборд
-            }
-            else if (tabControl.SelectedIndex == 2)
-            {
-                // Вкладка "Журнал" - обновить таблицу
-            }
-            else if (tabControl.SelectedIndex == 3)
-            {
-                // Вкладка "Отчёты" - обновить графики
-            }
-            */
 		}
 
-		// ================================================================
-		// ОБРАБОТЧИК ЗАКРЫТИЯ ФОРМЫ
-		// Вызывается, когда форма уже закрылась
-		// ================================================================
+		private void ButtonSwitchUser_Click(object sender, EventArgs e)
+		{
+			DialogResult result = MessageBox.Show(
+				"Вы уверены, что хотите сменить пользователя?\n\nПриложение будет перезапущено.",
+				"Смена пользователя",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+
+			if (result == DialogResult.Yes)
+			{
+				System.Diagnostics.Process.Start(Application.ExecutablePath);
+				Application.Exit();
+			}
+		}
+
+		private void ButtonExit_Click(object sender, EventArgs e)
+		{
+			DialogResult result = MessageBox.Show(
+				"Вы уверены, что хотите выйти из приложения?",
+				"Подтверждение выхода",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+
+			if (result == DialogResult.Yes)
+			{
+				Application.Exit();
+			}
+		}
+
 		private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
 		{
-			// Завершаем приложение полностью
-			// Если просто закрыть форму, приложение может остаться в фоне
 			Application.Exit();
 		}
 	}

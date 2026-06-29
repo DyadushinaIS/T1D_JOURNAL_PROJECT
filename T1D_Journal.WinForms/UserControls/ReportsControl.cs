@@ -263,6 +263,6 @@ namespace T1D_Journal.WinForms.UserControls
 
             // Загружаем данные
             LoadChartData();
-        }
-    }
+        }		
+	}
 }
