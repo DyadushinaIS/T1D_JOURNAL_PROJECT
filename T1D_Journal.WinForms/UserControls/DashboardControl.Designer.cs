@@ -47,7 +47,7 @@
 			labelWelcome.AutoSize = true;
 			labelWelcome.Dock = DockStyle.Top;
 			labelWelcome.Font = new Font("Book Antiqua", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 204);
-			labelWelcome.Location = new Point(0, 299);
+			labelWelcome.Location = new Point(0, 0);
 			labelWelcome.Name = "labelWelcome";
 			labelWelcome.Size = new Size(251, 23);
 			labelWelcome.TabIndex = 0;
@@ -81,56 +81,50 @@
 			groupBoxStats.Controls.Add(labelMax);
 			groupBoxStats.Controls.Add(labelMin);
 			groupBoxStats.Controls.Add(labelAvg);
-			groupBoxStats.Dock = DockStyle.Top;
+			groupBoxStats.Dock = DockStyle.Fill;
 			groupBoxStats.Location = new Point(0, 0);
 			groupBoxStats.Name = "groupBoxStats";
-			groupBoxStats.Size = new Size(1499, 299);
+			groupBoxStats.Size = new Size(1499, 691);
 			groupBoxStats.TabIndex = 1;
 			groupBoxStats.TabStop = false;
-			groupBoxStats.Text = "Статистика за сегодня";
 			// 
 			// labelStatus
 			// 
-			labelStatus.AutoSize = true;
-			labelStatus.Location = new Point(25, 77);
+			labelStatus.Location = new Point(290, 75);
 			labelStatus.Name = "labelStatus";
-			labelStatus.Size = new Size(131, 15);
+			labelStatus.Size = new Size(350, 35);
 			labelStatus.TabIndex = 4;
 			labelStatus.Text = "Статус: ✅ Всё хорошо";
 			// 
 			// labelInTarget
 			// 
-			labelInTarget.AutoSize = true;
-			labelInTarget.Location = new Point(590, 40);
+			labelInTarget.Location = new Point(20, 75);
 			labelInTarget.Name = "labelInTarget";
-			labelInTarget.Size = new Size(79, 15);
+			labelInTarget.Size = new Size(250, 30);
 			labelInTarget.TabIndex = 3;
 			labelInTarget.Text = "В норме: --%";
 			// 
 			// labelMax
 			// 
-			labelMax.AutoSize = true;
-			labelMax.Location = new Point(406, 40);
+			labelMax.Location = new Point(500, 25);
 			labelMax.Name = "labelMax";
-			labelMax.Size = new Size(52, 15);
+			labelMax.Size = new Size(200, 30);
 			labelMax.TabIndex = 2;
 			labelMax.Text = "Макс: --";
 			// 
 			// labelMin
 			// 
-			labelMin.AutoSize = true;
-			labelMin.Location = new Point(226, 40);
+			labelMin.Location = new Point(260, 25);
 			labelMin.Name = "labelMin";
-			labelMin.Size = new Size(48, 15);
+			labelMin.Size = new Size(220, 30);
 			labelMin.TabIndex = 1;
 			labelMin.Text = "Мин: --";
 			// 
 			// labelAvg
 			// 
-			labelAvg.AutoSize = true;
-			labelAvg.Location = new Point(25, 40);
+			labelAvg.Location = new Point(20, 30);
 			labelAvg.Name = "labelAvg";
-			labelAvg.Size = new Size(69, 15);
+			labelAvg.Size = new Size(220, 30);
 			labelAvg.TabIndex = 0;
 			labelAvg.Text = "Средняя: --";
 			// 
@@ -146,7 +140,6 @@
 			groupBoxLastReadings.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)dataGridViewLastReadings).EndInit();
 			groupBoxStats.ResumeLayout(false);
-			groupBoxStats.PerformLayout();
 			ResumeLayout(false);
 			PerformLayout();
 		}

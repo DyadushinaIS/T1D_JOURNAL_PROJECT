@@ -13,8 +13,9 @@ namespace T1D_Journal.WinForms.UserControls
 		{
 			InitializeComponent();
 
+			// ============================================================
 			// ЖЕСТКОЕ ПЕРЕСТРОЕНИЕ ИЕРАРХИИ
-			var welcome = this.labelWelcome;
+			// ============================================================
 			var stats = this.groupBoxStats;
 			var lastReadings = this.groupBoxLastReadings;
 			var grid = this.dataGridViewLastReadings;
@@ -28,21 +29,25 @@ namespace T1D_Journal.WinForms.UserControls
 
 			this.Controls.Add(lastReadings);
 			this.Controls.Add(stats);
-			this.Controls.Add(welcome);
 
-			welcome.Dock = DockStyle.Top;
-			welcome.Height = 50;
-
+			// ============================================================
+			// НАСТРОЙКА DOCK И РАЗМЕРОВ
+			// ============================================================
 			stats.Dock = DockStyle.Top;
-			stats.Height = 130;
+			stats.AutoSize = false;
+			stats.Height = 170;
+			stats.Padding = new Padding(10, 10, 10, 10);
 
 			lastReadings.Dock = DockStyle.Fill;
 			grid.Dock = DockStyle.Fill;
 
+			// ============================================================
+			// НАСТРОЙКА ТАБЛИЦЫ
+			// ============================================================
 			SetupDataGridView();
 
 			// ============================================================
-			// ПРОВЕРКА: если тестовый режим — не лезем в БД
+			// ЗАГРУЗКА ДАННЫХ
 			// ============================================================
 			if (CurrentUser.Login == "test")
 			{
@@ -69,6 +74,11 @@ namespace T1D_Journal.WinForms.UserControls
 			dataGridViewLastReadings.RowHeadersVisible = false;
 			dataGridViewLastReadings.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
+			// Делаем таблицу красивой
+			dataGridViewLastReadings.BackgroundColor = Color.White;
+			dataGridViewLastReadings.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 250);
+			dataGridViewLastReadings.RowTemplate.Height = 35;
+
 			if (dataGridViewLastReadings.Columns["DateTime"] != null)
 				dataGridViewLastReadings.Columns["DateTime"].Width = 150;
 			if (dataGridViewLastReadings.Columns["Glucose"] != null)
@@ -83,42 +93,39 @@ namespace T1D_Journal.WinForms.UserControls
 		{
 			try
 			{
-				// ============================================================
-				// 1. ЗАГОЛОВОК
-				// ============================================================
-				labelWelcome.Text = "📊 Ваш дневник самоконтроля";
-				labelWelcome.Font = new Font("Segoe UI", 22, FontStyle.Bold);
-				labelWelcome.ForeColor = Color.FromArgb(30, 30, 60);
-				labelWelcome.AutoSize = true;
-				labelWelcome.Location = new Point(20, 25);
-
-				// ============================================================
-				// 2. СТАТИСТИКА ЗА СЕГОДНЯ
-				// ============================================================
 				var repo = new GlucoseRepository();
 				var stats = repo.GetTodayStats(CurrentUser.ID);
 
-				// Шрифт для значений
-				Font valueFont = new Font("Segoe UI", 14, FontStyle.Bold);
+				// ---- 1. ЗАГОЛОВОК СТАТИСТИКИ ----
+				groupBoxStats.Text = "📊 Статистика за сегодня";
+				groupBoxStats.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+				groupBoxStats.ForeColor = Color.FromArgb(40, 40, 60);
+
+				Font valueFont = new Font("Segoe UI", 13, FontStyle.Bold);
 
 				if (stats.Total == 0)
 				{
 					labelAvg.Text = "Средняя: --";
 					labelAvg.Font = valueFont;
+
 					labelMin.Text = "Мин: --";
 					labelMin.Font = valueFont;
+
 					labelMax.Text = "Макс: --";
 					labelMax.Font = valueFont;
+
 					labelInTarget.Text = "В норме: --%";
 					labelInTarget.Font = valueFont;
+
 					labelStatus.Text = "Статус: ⏳ Нет данных за сегодня";
-					labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+					labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 					labelStatus.ForeColor = Color.Gray;
+
 					dataGridViewLastReadings.Rows.Clear();
 					return;
 				}
 
-				// Заполняем значения
+				// ---- Статистика ----
 				labelAvg.Text = $"📉 Средняя: {stats.Avg:F1} ммоль/л";
 				labelAvg.Font = valueFont;
 				labelAvg.ForeColor = Color.FromArgb(20, 80, 20);
@@ -135,29 +142,27 @@ namespace T1D_Journal.WinForms.UserControls
 				labelInTarget.Font = valueFont;
 				labelInTarget.ForeColor = Color.FromArgb(0, 100, 200);
 
-				// Статус
+				// ---- Статус ----
 				if (stats.PercentInTarget >= 70)
 				{
 					labelStatus.Text = "Статус: ✅ Всё хорошо";
-					labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+					labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 					labelStatus.ForeColor = Color.Green;
 				}
 				else if (stats.PercentInTarget >= 40)
 				{
 					labelStatus.Text = "Статус: ⚠️ Есть отклонения";
-					labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+					labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 					labelStatus.ForeColor = Color.Orange;
 				}
 				else
 				{
 					labelStatus.Text = "Статус: ❌ Требуется внимание";
-					labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+					labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 					labelStatus.ForeColor = Color.Red;
 				}
 
-				// ============================================================
-				// 3. ПОСЛЕДНИЕ 3 ЗАМЕРА
-				// ============================================================
+				// ---- 3. ПОСЛЕДНИЕ 3 ЗАМЕРА ----
 				DataTable dt = repo.GetLastReadings(CurrentUser.ID, 3);
 				dataGridViewLastReadings.Rows.Clear();
 
@@ -190,18 +195,12 @@ namespace T1D_Journal.WinForms.UserControls
 
 		public void LoadTestData()
 		{
-			// ============================================================
-			// 1. ЗАГОЛОВОК
-			// ============================================================
-			labelWelcome.Text = "📊 Ваш дневник самоконтроля (тестовый режим)";
-			labelWelcome.Font = new Font("Segoe UI", 22, FontStyle.Bold);
-			labelWelcome.ForeColor = Color.FromArgb(30, 30, 60);
-			labelWelcome.AutoSize = true;
-			labelWelcome.Location = new Point(20, 25);
+			// ---- 1. ЗАГОЛОВОК СТАТИСТИКИ ----
+			groupBoxStats.Text = "📊 Статистика за сегодня (тест)";
+			groupBoxStats.Font = new Font("Segoe UI", 11, FontStyle.Bold);
+			groupBoxStats.ForeColor = Color.FromArgb(40, 40, 60);
 
-			// ============================================================
-			// 2. ТЕСТОВАЯ СТАТИСТИКА
-			// ============================================================
+			// ---- 2. ТЕСТОВАЯ СТАТИСТИКА ----
 			var todayData = new List<double> { 5.2, 4.8, 6.1, 7.5, 5.5 };
 
 			double avg = todayData.Average();
@@ -210,55 +209,57 @@ namespace T1D_Journal.WinForms.UserControls
 			int inTarget = todayData.Count(v => v >= 4.0 && v <= 7.0);
 			double percentInTarget = (double)inTarget / todayData.Count * 100;
 
-			Font valueFont = new Font("Segoe UI", 14, FontStyle.Bold);
+			Font valueFont = new Font("Segoe UI", 13, FontStyle.Bold);
 
+			// ---- Средняя ----
 			labelAvg.Text = $"📉 Средняя: {avg:F1} ммоль/л";
 			labelAvg.Font = valueFont;
 			labelAvg.ForeColor = Color.FromArgb(20, 80, 20);
 
+			// ---- Мин ----
 			labelMin.Text = $"📉 Мин: {min:F1} ммоль/л";
 			labelMin.Font = valueFont;
 			labelMin.ForeColor = Color.FromArgb(200, 100, 0);
 
+			// ---- Макс ----
 			labelMax.Text = $"📈 Макс: {max:F1} ммоль/л";
 			labelMax.Font = valueFont;
 			labelMax.ForeColor = Color.FromArgb(200, 30, 30);
 
+			// ---- В норме ----
 			labelInTarget.Text = $"✅ В норме: {percentInTarget:F0}%";
 			labelInTarget.Font = valueFont;
 			labelInTarget.ForeColor = Color.FromArgb(0, 100, 200);
 
-			// Статус
+			// ---- Статус ----
 			if (percentInTarget >= 70)
 			{
 				labelStatus.Text = "Статус: ✅ Всё хорошо";
-				labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+				labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 				labelStatus.ForeColor = Color.Green;
 			}
 			else if (percentInTarget >= 40)
 			{
 				labelStatus.Text = "Статус: ⚠️ Есть отклонения";
-				labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+				labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 				labelStatus.ForeColor = Color.Orange;
 			}
 			else
 			{
 				labelStatus.Text = "Статус: ❌ Требуется внимание";
-				labelStatus.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+				labelStatus.Font = new Font("Segoe UI", 12, FontStyle.Bold);
 				labelStatus.ForeColor = Color.Red;
 			}
 
-			// ============================================================
-			// 3. ТЕСТОВЫЕ ПОСЛЕДНИЕ ЗАМЕРЫ
-			// ============================================================
+			// ---- 3. ТЕСТОВЫЕ ПОСЛЕДНИЕ ЗАМЕРЫ ----
 			dataGridViewLastReadings.Rows.Clear();
 
 			var lastReadings = new List<object[]>
-	{
-		new object[] { DateTime.Now.AddHours(-2).ToString("dd.MM.yyyy HH:mm"), "5.2", "AfterMeal", "Обед" },
-		new object[] { DateTime.Now.AddHours(-6).ToString("dd.MM.yyyy HH:mm"), "4.5", "Fasting", "Натощак" },
-		new object[] { DateTime.Now.AddDays(-1).ToString("dd.MM.yyyy HH:mm"), "6.1", "BeforeMeal", "Ужин" }
-	};
+			{
+				new object[] { DateTime.Now.AddHours(-2).ToString("dd.MM.yyyy HH:mm"), "5.2", "AfterMeal", "Обед" },
+				new object[] { DateTime.Now.AddHours(-6).ToString("dd.MM.yyyy HH:mm"), "4.5", "Fasting", "Натощак" },
+				new object[] { DateTime.Now.AddDays(-1).ToString("dd.MM.yyyy HH:mm"), "6.1", "BeforeMeal", "Ужин" }
+			};
 
 			foreach (var row in lastReadings)
 			{

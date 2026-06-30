@@ -30,13 +30,13 @@
 		{
 			tabControl = new TabControl();
 			tabPageDashboard = new TabPage();
+			dashboardControl1 = new T1D_Journal.WinForms.UserControls.DashboardControl();
 			tabPageDataEntry = new TabPage();
 			dataEntryControl1 = new T1D_Journal.WinForms.UserControls.DataEntryControl();
 			tabPageJournal = new TabPage();
 			journalControl1 = new T1D_Journal.WinForms.UserControls.JournalControl();
 			tabPageReports = new TabPage();
 			reportsControl1 = new T1D_Journal.WinForms.UserControls.ReportsControl();
-			dashboardControl1 = new T1D_Journal.WinForms.UserControls.DashboardControl();
 			tabControl.SuspendLayout();
 			tabPageDashboard.SuspendLayout();
 			tabPageDataEntry.SuspendLayout();
@@ -68,6 +68,14 @@
 			tabPageDashboard.TabIndex = 0;
 			tabPageDashboard.Text = "Главная";
 			tabPageDashboard.UseVisualStyleBackColor = true;
+			// 
+			// dashboardControl1
+			// 
+			dashboardControl1.Dock = DockStyle.Fill;
+			dashboardControl1.Location = new Point(3, 3);
+			dashboardControl1.Name = "dashboardControl1";
+			dashboardControl1.Size = new Size(786, 416);
+			dashboardControl1.TabIndex = 0;
 			// 
 			// tabPageDataEntry
 			// 
@@ -125,13 +133,6 @@
 			reportsControl1.Name = "reportsControl1";
 			reportsControl1.Size = new Size(786, 416);
 			reportsControl1.TabIndex = 0;
-			// 
-			// dashboardControl1
-			// 
-			dashboardControl1.Location = new Point(0, 38);
-			dashboardControl1.Name = "dashboardControl1";
-			dashboardControl1.Size = new Size(1499, 691);
-			dashboardControl1.TabIndex = 0;
 			// 
 			// FormMain
 			// 

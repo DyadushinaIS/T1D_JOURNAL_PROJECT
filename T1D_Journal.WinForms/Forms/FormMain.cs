@@ -20,7 +20,7 @@ namespace T1D_Journal.WinForms.Forms
 			Panel headerPanel = new Panel();
 			headerPanel.Dock = DockStyle.Top;
 			headerPanel.Height = 65;
-			headerPanel.BackColor = Color.White;  // Теперь белая
+			headerPanel.BackColor = Color.White;
 			headerPanel.Padding = new Padding(20, 0, 20, 0);
 
 			// ---- Приветствие слева ----
@@ -34,7 +34,7 @@ namespace T1D_Journal.WinForms.Forms
 			// ---- Панель для кнопок справа ----
 			Panel buttonPanel = new Panel();
 			buttonPanel.Dock = DockStyle.Right;
-			buttonPanel.Width = 320;  // увеличили, чтобы кнопки влезли
+			buttonPanel.Width = 320;
 			buttonPanel.Height = 65;
 			buttonPanel.BackColor = Color.Transparent;
 			buttonPanel.Padding = new Padding(0, 12, 0, 0);
@@ -43,7 +43,7 @@ namespace T1D_Journal.WinForms.Forms
 			Button buttonSwitchUser = new Button();
 			buttonSwitchUser.Text = "🔑 Сменить пользователя";
 			buttonSwitchUser.Size = new Size(180, 36);
-			buttonSwitchUser.Location = new Point(0, 14);   // центровка
+			buttonSwitchUser.Location = new Point(0, 14);
 			buttonSwitchUser.FlatStyle = FlatStyle.Flat;
 			buttonSwitchUser.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
 			buttonSwitchUser.BackColor = Color.FromArgb(240, 248, 255);
@@ -56,7 +56,7 @@ namespace T1D_Journal.WinForms.Forms
 			Button buttonExit = new Button();
 			buttonExit.Text = "❌ Выход";
 			buttonExit.Size = new Size(110, 36);
-			buttonExit.Location = new Point(190, 14);   // центровка
+			buttonExit.Location = new Point(190, 14);
 			buttonExit.FlatStyle = FlatStyle.Flat;
 			buttonExit.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
 			buttonExit.BackColor = Color.FromArgb(255, 240, 240);
@@ -78,8 +78,17 @@ namespace T1D_Journal.WinForms.Forms
 			lineSeparator.BackColor = Color.FromArgb(220, 220, 220);
 			headerPanel.Controls.Add(lineSeparator);
 
+			// ================================================================
+			// ДОБАВЛЯЕМ ШАПКУ И ПРАВИЛЬНО РАСПРЕДЕЛЯЕМ СЛОИ
+			// ================================================================
 			this.Controls.Add(headerPanel);
-			headerPanel.BringToFront();
+
+			// ================================================================
+			// ВАЖНО! Отправляем шапку на задний план,
+			// чтобы вкладки были видны
+			// ================================================================
+			headerPanel.SendToBack();
+			tabControl.BringToFront();
 
 			// ================================================================
 			// ВКЛАДКА "ОТЧЁТЫ" — ВРЕМЕННО ОТКЛЮЧЕНА
