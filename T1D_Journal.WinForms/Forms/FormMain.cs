@@ -11,43 +11,58 @@ namespace T1D_Journal.WinForms.Forms
 		public FormMain()
 		{
 			InitializeComponent();
+
+			// ================================================================
+			// НАСТРОЙКА ОКНА
+			// ================================================================
 			this.Text = $"Дневник T1D - {CurrentUser.FullName}";
-			this.WindowState = FormWindowState.Maximized;
+			this.WindowState = FormWindowState.Normal;
+			this.Size = new Size(950, 700);
+			this.MinimumSize = new Size(800, 600);
+			this.MaximumSize = new Size(1200, 850);
+
+			// ================================================================
+			// НАСТРОЙКА ВКЛАДОК (КРУПНЫЕ, ЖИРНЫЕ, ЦВЕТНЫЕ)
+			// ================================================================
+			tabControl.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+			tabControl.SizeMode = TabSizeMode.Fixed;
+			tabControl.ItemSize = new Size(150, 32);
+			tabControl.Padding = new Point(10, 8);
+			tabControl.BackColor = Color.FromArgb(245, 245, 250);
 
 			// ================================================================
 			// КРАСИВАЯ ШАПКА
 			// ================================================================
 			Panel headerPanel = new Panel();
 			headerPanel.Dock = DockStyle.Top;
-			headerPanel.Height = 65;
+			headerPanel.Height = 70;
 			headerPanel.BackColor = Color.White;
-			headerPanel.Padding = new Padding(20, 0, 20, 0);
+			headerPanel.Padding = new Padding(25, 0, 25, 0);
 
 			// ---- Приветствие слева ----
 			Label welcomeLabel = new Label();
-			welcomeLabel.Text = $"Здравствуйте, {CurrentUser.FullName}!";
-			welcomeLabel.Font = new Font("Segoe UI", 13, FontStyle.Bold);
+			welcomeLabel.Text = $"👋 Здравствуйте, {CurrentUser.FullName}!";
+			welcomeLabel.Font = new Font("Segoe UI", 14, FontStyle.Bold);
 			welcomeLabel.ForeColor = Color.FromArgb(40, 40, 60);
 			welcomeLabel.AutoSize = true;
-			welcomeLabel.Location = new Point(15, 18);
+			welcomeLabel.Location = new Point(15, 22);
 
 			// ---- Панель для кнопок справа ----
 			Panel buttonPanel = new Panel();
 			buttonPanel.Dock = DockStyle.Right;
-			buttonPanel.Width = 320;
-			buttonPanel.Height = 65;
+			buttonPanel.Width = 400;
+			buttonPanel.Height = 70;
 			buttonPanel.BackColor = Color.Transparent;
-			buttonPanel.Padding = new Padding(0, 12, 0, 0);
 
 			// ---- Кнопка "Сменить пользователя" ----
 			Button buttonSwitchUser = new Button();
 			buttonSwitchUser.Text = "🔑 Сменить пользователя";
-			buttonSwitchUser.Size = new Size(180, 36);
-			buttonSwitchUser.Location = new Point(0, 14);
+			buttonSwitchUser.Size = new Size(220, 38);
+			buttonSwitchUser.Location = new Point(0, 16);
 			buttonSwitchUser.FlatStyle = FlatStyle.Flat;
 			buttonSwitchUser.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
 			buttonSwitchUser.BackColor = Color.FromArgb(240, 248, 255);
-			buttonSwitchUser.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+			buttonSwitchUser.Font = new Font("Segoe UI", 10, FontStyle.Bold);
 			buttonSwitchUser.ForeColor = Color.FromArgb(50, 50, 80);
 			buttonSwitchUser.Cursor = Cursors.Hand;
 			buttonSwitchUser.Click += ButtonSwitchUser_Click;
@@ -55,12 +70,12 @@ namespace T1D_Journal.WinForms.Forms
 			// ---- Кнопка "Выход" ----
 			Button buttonExit = new Button();
 			buttonExit.Text = "❌ Выход";
-			buttonExit.Size = new Size(110, 36);
-			buttonExit.Location = new Point(190, 14);
+			buttonExit.Size = new Size(140, 38);
+			buttonExit.Location = new Point(235, 16);
 			buttonExit.FlatStyle = FlatStyle.Flat;
 			buttonExit.FlatAppearance.BorderColor = Color.FromArgb(180, 180, 180);
 			buttonExit.BackColor = Color.FromArgb(255, 240, 240);
-			buttonExit.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+			buttonExit.Font = new Font("Segoe UI", 10, FontStyle.Bold);
 			buttonExit.ForeColor = Color.FromArgb(120, 40, 40);
 			buttonExit.Cursor = Cursors.Hand;
 			buttonExit.Click += ButtonExit_Click;
@@ -74,18 +89,17 @@ namespace T1D_Journal.WinForms.Forms
 			// ---- Тонкая линия-разделитель снизу ----
 			Label lineSeparator = new Label();
 			lineSeparator.Dock = DockStyle.Bottom;
-			lineSeparator.Height = 1;
-			lineSeparator.BackColor = Color.FromArgb(220, 220, 220);
+			lineSeparator.Height = 2;
+			lineSeparator.BackColor = Color.FromArgb(210, 210, 220);
 			headerPanel.Controls.Add(lineSeparator);
 
 			// ================================================================
-			// ДОБАВЛЯЕМ ШАПКУ И ПРАВИЛЬНО РАСПРЕДЕЛЯЕМ СЛОИ
+			// ДОБАВЛЯЕМ ШАПКУ НА ФОРМУ
 			// ================================================================
 			this.Controls.Add(headerPanel);
 
 			// ================================================================
-			// ВАЖНО! Отправляем шапку на задний план,
-			// чтобы вкладки были видны
+			// ПРАВИЛЬНЫЙ ПОРЯДОК СЛОЁВ (шапка сзади, вкладки спереди)
 			// ================================================================
 			headerPanel.SendToBack();
 			tabControl.BringToFront();
@@ -96,11 +110,17 @@ namespace T1D_Journal.WinForms.Forms
 			tabPageReports.Enabled = false;
 		}
 
+		// ================================================================
+		// ЗАГРУЗКА ФОРМЫ
+		// ================================================================
 		private void FormMain_Load(object sender, EventArgs e)
 		{
 			LoadAllTabsData();
 		}
 
+		// ================================================================
+		// ЗАГРУЗКА ДАННЫХ НА ВСЕХ ВКЛАДКАХ
+		// ================================================================
 		private void LoadAllTabsData()
 		{
 			bool isTestMode = (CurrentUser.Login == "test");
@@ -139,6 +159,9 @@ namespace T1D_Journal.WinForms.Forms
 			}
 		}
 
+		// ================================================================
+		// ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+		// ================================================================
 		private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			bool isTestMode = (CurrentUser.Login == "test");
@@ -186,6 +209,9 @@ namespace T1D_Journal.WinForms.Forms
 			}
 		}
 
+		// ================================================================
+		// ОБРАБОТЧИК: СМЕНИТЬ ПОЛЬЗОВАТЕЛЯ
+		// ================================================================
 		private void ButtonSwitchUser_Click(object sender, EventArgs e)
 		{
 			DialogResult result = MessageBox.Show(
@@ -201,6 +227,9 @@ namespace T1D_Journal.WinForms.Forms
 			}
 		}
 
+		// ================================================================
+		// ОБРАБОТЧИК: ВЫХОД ИЗ ПРИЛОЖЕНИЯ
+		// ================================================================
 		private void ButtonExit_Click(object sender, EventArgs e)
 		{
 			DialogResult result = MessageBox.Show(
@@ -215,6 +244,9 @@ namespace T1D_Journal.WinForms.Forms
 			}
 		}
 
+		// ================================================================
+		// ЗАКРЫТИЕ ФОРМЫ (через крестик)
+		// ================================================================
 		private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
 		{
 			Application.Exit();

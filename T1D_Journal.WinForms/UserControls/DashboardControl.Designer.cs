@@ -90,7 +90,7 @@
 			// 
 			// labelStatus
 			// 
-			labelStatus.Location = new Point(290, 75);
+			labelStatus.Location = new Point(420, 135);
 			labelStatus.Name = "labelStatus";
 			labelStatus.Size = new Size(350, 35);
 			labelStatus.TabIndex = 4;
@@ -98,7 +98,7 @@
 			// 
 			// labelInTarget
 			// 
-			labelInTarget.Location = new Point(20, 75);
+			labelInTarget.Location = new Point(120, 135);
 			labelInTarget.Name = "labelInTarget";
 			labelInTarget.Size = new Size(250, 30);
 			labelInTarget.TabIndex = 3;
@@ -106,7 +106,7 @@
 			// 
 			// labelMax
 			// 
-			labelMax.Location = new Point(500, 25);
+			labelMax.Location = new Point(500, 85);
 			labelMax.Name = "labelMax";
 			labelMax.Size = new Size(200, 30);
 			labelMax.TabIndex = 2;
@@ -114,7 +114,7 @@
 			// 
 			// labelMin
 			// 
-			labelMin.Location = new Point(260, 25);
+			labelMin.Location = new Point(260, 85);
 			labelMin.Name = "labelMin";
 			labelMin.Size = new Size(220, 30);
 			labelMin.TabIndex = 1;
@@ -122,7 +122,7 @@
 			// 
 			// labelAvg
 			// 
-			labelAvg.Location = new Point(20, 30);
+			labelAvg.Location = new Point(20, 85);
 			labelAvg.Name = "labelAvg";
 			labelAvg.Size = new Size(220, 30);
 			labelAvg.TabIndex = 0;

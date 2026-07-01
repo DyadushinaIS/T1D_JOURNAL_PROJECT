@@ -12,10 +12,25 @@ namespace T1D_Journal.WinForms.UserControls
         {
             InitializeComponent();
 
-            this.buttonSaveReading.Click += ButtonSaveReading_Click;
-            this.buttonClear.Click += ButtonClear_Click;
+			// Настройка внешнего вида
+			dateTimePickerReading.Font = new Font("Segoe UI", 11);
+			numericUpDownGlucose.Font = new Font("Segoe UI", 11);
+			comboBoxMealTag.Font = new Font("Segoe UI", 11);
+			textBoxNote.Font = new Font("Segoe UI", 11);
 
-            LoadData();
+			// Подсказки (Tooltips)
+			ToolTip toolTip = new ToolTip();
+			toolTip.SetToolTip(dateTimePickerReading, "Выберите дату и время замера");
+			toolTip.SetToolTip(numericUpDownGlucose, "Введите уровень глюкозы (1–40 ммоль/л)");
+			toolTip.SetToolTip(comboBoxMealTag, "Выберите, когда сделан замер");
+			toolTip.SetToolTip(textBoxNote, "Дополнительная информация (необязательно)");
+			toolTip.SetToolTip(buttonSaveReading, "Сохранить замер в базу данных");
+			toolTip.SetToolTip(buttonClear, "Очистить все поля");
+
+			this.buttonSaveReading.Click += ButtonSaveReading_Click;
+            this.buttonClear.Click += ButtonClear_Click;			
+
+			LoadData();
         }
 
         public void LoadData()

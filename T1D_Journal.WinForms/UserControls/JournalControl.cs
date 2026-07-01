@@ -13,14 +13,27 @@ namespace T1D_Journal.WinForms.UserControls
 		{
 			InitializeComponent();
 
+			// ============================================================
+			// РАЗМЕЩАЕМ ПАНЕЛЬ СВЕРХУ, ТАБЛИЦУ ПОД НЕЙ
+			// (БЕЗ ВСЯКИХ BringToFront И SetChildIndex!)
+			// ============================================================
+
+			// 1. Панель фильтров — приклеиваем к верху
+			panelControl.Dock = DockStyle.Top;
+			panelControl.Height = 45;
+			panelControl.BackColor = Color.FromArgb(245, 245, 250);
+
+			// 2. Таблица — занимает всё оставшееся место
+			dataGridViewJournal.Dock = DockStyle.Fill;
+
+			// ============================================================
+			// ПОДПИСКИ И ЛОГИКА
+			// ============================================================
 			this.buttonFilter.Click += BtnFilter_Click;
 			this.buttonRefresh.Click += BtnRefresh_Click;
 
 			SetupDataGridView();
 
-			// ============================================================
-			// ПРОВЕРКА: если тестовый режим — не лезем в БД
-			// ============================================================
 			if (CurrentUser.Login == "test")
 			{
 				LoadTestData();
@@ -44,22 +57,31 @@ namespace T1D_Journal.WinForms.UserControls
 			dataGridViewJournal.ReadOnly = true;
 			dataGridViewJournal.AllowUserToAddRows = false;
 			dataGridViewJournal.RowHeadersVisible = false;
-			dataGridViewJournal.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+			dataGridViewJournal.BorderStyle = BorderStyle.None;
+			dataGridViewJournal.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+			dataGridViewJournal.GridColor = Color.FromArgb(220, 220, 230);
+
+			dataGridViewJournal.EnableHeadersVisualStyles = false;
 
 			dataGridViewJournal.ColumnHeadersVisible = true;
 			dataGridViewJournal.ColumnHeadersHeight = 35;
-			dataGridViewJournal.EnableHeadersVisualStyles = false;
-			dataGridViewJournal.ColumnHeadersDefaultCellStyle.BackColor = Color.LightGray;
-			dataGridViewJournal.ColumnHeadersDefaultCellStyle.Font = new Font("Microsoft Sans Serif", 9, FontStyle.Bold);
+			dataGridViewJournal.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(240, 240, 245);
+			dataGridViewJournal.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+			dataGridViewJournal.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(40, 40, 60);
 
-			if (dataGridViewJournal.Columns["DateTime"] != null)
-				dataGridViewJournal.Columns["DateTime"].Width = 150;
-			if (dataGridViewJournal.Columns["Glucose"] != null)
-				dataGridViewJournal.Columns["Glucose"].Width = 120;
-			if (dataGridViewJournal.Columns["MealTag"] != null)
-				dataGridViewJournal.Columns["MealTag"].Width = 120;
+			dataGridViewJournal.RowTemplate.Height = 35;
+			dataGridViewJournal.DefaultCellStyle.Font = new Font("Segoe UI", 10);
+			dataGridViewJournal.DefaultCellStyle.ForeColor = Color.FromArgb(50, 50, 60);
+
+			dataGridViewJournal.DefaultCellStyle.SelectionBackColor = Color.FromArgb(210, 230, 255);
+			dataGridViewJournal.DefaultCellStyle.SelectionForeColor = Color.FromArgb(20, 20, 40);
+
+			dataGridViewJournal.BackgroundColor = Color.White;
+			dataGridViewJournal.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 248, 252);
+
 			if (dataGridViewJournal.Columns["Note"] != null)
-				dataGridViewJournal.Columns["Note"].Width = 300;
+				dataGridViewJournal.Columns["Note"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 		}
 
 		private void LoadDataFromDB(DateTime from, DateTime to)

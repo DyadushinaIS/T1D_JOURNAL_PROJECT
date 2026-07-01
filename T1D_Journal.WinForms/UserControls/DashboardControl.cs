@@ -35,8 +35,8 @@ namespace T1D_Journal.WinForms.UserControls
 			// ============================================================
 			stats.Dock = DockStyle.Top;
 			stats.AutoSize = false;
-			stats.Height = 170;
-			stats.Padding = new Padding(10, 10, 10, 10);
+			stats.Height = 200;
+			stats.Padding = new Padding(15, 75, 15, 15);
 
 			lastReadings.Dock = DockStyle.Fill;
 			grid.Dock = DockStyle.Fill;
@@ -98,8 +98,8 @@ namespace T1D_Journal.WinForms.UserControls
 
 				// ---- 1. ЗАГОЛОВОК СТАТИСТИКИ ----
 				groupBoxStats.Text = "📊 Статистика за сегодня";
-				groupBoxStats.Font = new Font("Segoe UI", 11, FontStyle.Bold);
-				groupBoxStats.ForeColor = Color.FromArgb(40, 40, 60);
+				groupBoxStats.Font = new Font("Segoe UI", 14, FontStyle.Bold);
+				groupBoxStats.ForeColor = Color.FromArgb(30, 30, 80);
 
 				Font valueFont = new Font("Segoe UI", 13, FontStyle.Bold);
 
@@ -196,9 +196,9 @@ namespace T1D_Journal.WinForms.UserControls
 		public void LoadTestData()
 		{
 			// ---- 1. ЗАГОЛОВОК СТАТИСТИКИ ----
-			groupBoxStats.Text = "📊 Статистика за сегодня (тест)";
-			groupBoxStats.Font = new Font("Segoe UI", 11, FontStyle.Bold);
-			groupBoxStats.ForeColor = Color.FromArgb(40, 40, 60);
+			groupBoxStats.Text = "📊 Статистика за сегодня";
+			groupBoxStats.Font = new Font("Segoe UI", 14, FontStyle.Bold);
+			groupBoxStats.ForeColor = Color.FromArgb(30, 30, 80);
 
 			// ---- 2. ТЕСТОВАЯ СТАТИСТИКА ----
 			var todayData = new List<double> { 5.2, 4.8, 6.1, 7.5, 5.5 };
